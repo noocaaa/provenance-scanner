@@ -32,3 +32,6 @@ vagrant/.vagrant/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Internal files
+Organization.md
