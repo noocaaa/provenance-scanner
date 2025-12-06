@@ -3,8 +3,8 @@ from scanner.agents.static_collector.static_collector import StaticCollector
 
 def main():
     collector = StaticCollector()
-    data = collector.collect_network()
-    collector.save_to_yaml("static_network.yml")
+    data = collector.collect_all()
+    collector.save("static_data")
 
     print("\n=== SUMMARY ===")
     print(f"Hostname: {data['static']['system_info'].get('hostname', 'N/A')}")
