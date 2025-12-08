@@ -1,22 +1,15 @@
-import sys, os
-from scanner.agents.static_collector.static_collector import StaticCollector
+"""
+File: main.py
+Author: Noelia Carrasco Vilar
+Date: 2025-12-07
+Description:
+    Entrypoint to execute the discovery phase.
+"""
 
-def main():
-    collector = StaticCollector()
-    data = collector.collect_all()
-    collector.save("static_data")
-
-    print("\n=== SUMMARY ===")
-    print(f"Hostname: {data['static']['system_info'].get('hostname', 'N/A')}")
-    print(f"OS: {data['static']['system_info']['os'].get('system')}")
-    print(f"System processes: {len(data['static']['processes']['system_core'])}")
-    print(f"User processes: {len(data['static']['processes']['user_applications'])}")
-    print(f"Installed software: {len(data['static']['installed_software'])}")
-    print(f"Running services: {len(data['static']['services'])}")
-
+from scanner.discovery.phase0_selfdiscovery import run_phase0
+from utils import save_phase0_results
 
 if __name__ == "__main__":
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
-    main()
-
+    results = run_phase0()
+    save_phase0_results(results)
+    

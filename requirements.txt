@@ -1,0 +1,6 @@
+psutil
+pysnmp
+scapy
+netifaces
+
+# Note: Vagrant must be installed separately from https://www.vagrantup.com/
