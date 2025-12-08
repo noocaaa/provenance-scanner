@@ -1,0 +1,81 @@
+Vagrant.configure("2") do |config|
+  # ---- GLOBAL SETTINGS ----
+  config.vm.box_check_update = false
+
+  # Red interna común
+  NETWORK_PREFIX = "192.168.56"
+
+  # ---- LINUX NODE 1 ----
+  config.vm.define "linux1" do |node|
+    node.vm.box = "ubuntu/jammy64"
+    node.vm.hostname = "linux1"
+    node.vm.network "private_network", ip: "#{NETWORK_PREFIX}.11"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+    node.vm.provision "shell", path: "scripts/install_scanner_linux.sh"
+  end
+
+  # ---- LINUX NODE 2 ----
+  config.vm.define "linux2" do |node|
+    node.vm.box = "ubuntu/jammy64"
+    node.vm.hostname = "linux2"
+    node.vm.network "private_network", ip: "#{NETWORK_PREFIX}.12"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+    node.vm.provision "shell", path: "scripts/install_scanner_linux.sh"
+  end
+
+  # ---- DNS SERVER ----
+  config.vm.define "dns" do |dns|
+    dns.vm.box = "ubuntu/jammy64"
+    dns.vm.hostname = "dns"
+    dns.vm.network "private_network", ip: "#{NETWORK_PREFIX}.20"
+    dns.vm.provider "virtualbox" do |vb|
+      vb.memory = 768
+      vb.cpus = 1
+    end
+    dns.vm.provision "shell", path: "scripts/install_scanner_dns.sh"
+  end
+
+  # ---- FIREWALL ----
+  config.vm.define "firewall" do |fw|
+    fw.vm.box = "ubuntu/jammy64"
+    fw.vm.hostname = "firewall"
+    fw.vm.network "private_network", ip: "#{NETWORK_PREFIX}.30"
+    fw.vm.provider "virtualbox" do |vb|
+      vb.memory = 512
+      vb.cpus = 1
+    end
+    fw.vm.provision "shell", path: "scripts/install_scanner_firewall.sh"
+  end
+
+  # ---- PRINTER ----
+  config.vm.define "printer" do |pr|
+    pr.vm.box = "ubuntu/jammy64"
+    pr.vm.hostname = "printer"
+    pr.vm.network "private_network", ip: "#{NETWORK_PREFIX}.40"
+    pr.vm.provider "virtualbox" do |vb|
+      vb.memory = 512
+      vb.cpus = 1
+    end
+    pr.vm.provision "shell", path: "scripts/install_scanner_printer.sh"
+  end
+
+  # ---- OPTIONAL WINDOWS CLIENT ----
+  # WARNING: Only enable if you want Windows & have 16+ GB extra
+  # config.vm.define "win" do |win|
+  #   win.vm.box = "gusztavvargadr/windows-11"
+  #   win.vm.hostname = "win"
+  #   win.vm.network "private_network", ip: "#{NETWORK_PREFIX}.50"
+  #   win.vm.provider "virtualbox" do |vb|
+  #     vb.memory = 4096
+  #     vb.cpus = 2
+  #   end
+  #   win.vm.provision "shell", path: "scripts/install_scanner_win.ps1"
+  # end
+
+end
