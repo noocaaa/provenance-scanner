@@ -1,83 +1,300 @@
 """
 File: phase1_localnetworkdiscovery.py
 Author: Noelia Carrasco Vilar
-Date: 2025-12-08
+Date: 2025-12-09
 Description:
-    Map immediate surroundings.
+    Phase 1 - Fast Local Network Discovery.  L2/L3 reachability.
 """
 
-import platform
 import ipaddress
+import platform
+import subprocess
+import socket
+import netifaces
+import re
 from concurrent.futures import ThreadPoolExecutor
-from scanner.discovery.utils import extract_regex, run
+from collections import defaultdict
 
-# ---------------------------
-# PHASE 1: LOCAL NETWORK DISCOVERY
-# ---------------------------
+# -------------------------
+# Ports for shallow discovery
+# -------------------------
 
-def calculate_subnet(ip, mask):
+DISCOVERY_PORTS = {
+    "printer": [9100, 515, 631],
+    "server": [22, 80, 443, 445, 3306, 5432],
+    "switch": [23, 161]
+}
+
+COMMON_TCP_PORTS = [22, 80, 443]   # Phase-1 minimal probes
+COMMON_UDP_PORTS = [53, 67, 161, 123]  # DO NOT parse protocols – only presence detection
+
+# -------------------------
+# Utilities
+# -------------------------
+
+def calculate_subnet_range(ip: str, netmask: str) -> ipaddress.IPv4Network:
+    return ipaddress.IPv4Network(f"{ip}/{netmask}", strict=False)
+
+def scan_open_ports(ip, ports=None, timeout=0.2):
+    """Return list of open TCP ports for a host."""
+    ports = ports or DISCOVERY_PORTS["server"] + DISCOVERY_PORTS["printer"] + DISCOVERY_PORTS["switch"]
+    open_p = []
+    for p in ports:
+        if tcp_probe(ip, p, timeout):
+            open_p.append(p)
+    return open_p
+
+
+def is_valid_host(ip_str: str, network: ipaddress.IPv4Network) -> bool:
+    """Check that IP is real, not multicast, not broadcast, and inside subnet."""
     try:
-        net = ipaddress.IPv4Network(f"{ip}/{mask}", strict=False)
-        return net
-    except:
+        ip = ipaddress.IPv4Address(ip_str)
+    except Exception:
+        return False
+
+    if ip.is_multicast or ip.is_unspecified or ip.is_loopback:
+        return False
+    if ip == network.network_address or ip == network.broadcast_address:
+        return False
+
+    return ip in network
+
+# -------------------------
+# ARP SCAN
+# -------------------------
+
+def arp_scan_local(network: ipaddress.IPv4Network):
+    """Read ARP cache and return entries that belong to subnet."""
+    try:
+        system = platform.system()
+        cmd = "arp -a" if system == "Windows" else "arp -n"
+        out = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode(errors="ignore")
+    except Exception:
+        return []
+
+    hosts = []
+    for line in out.splitlines():
+        parts = line.strip().split()
+        if not parts:
+            continue
+        candidate = parts[0]
+        if candidate.count('.') != 3:
+            continue
+        if is_valid_host(candidate, network):
+            hosts.append(candidate)
+    return hosts
+
+# -------------------------
+# TCP SYN Discovery
+# -------------------------
+
+def tcp_probe(ip: str, port: int, timeout=0.15) -> bool:
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(timeout)
+            return s.connect_ex((ip, port)) == 0
+    except Exception:
+        return False
+
+
+def tcp_discovery(network: ipaddress.IPv4Network, ports=None, workers=60, max_hosts=1024):
+    ports = ports or COMMON_TCP_PORTS
+
+    all_hosts = list(network.hosts())
+    if len(all_hosts) > max_hosts:
+        ips_to_scan = [str(ip) for ip in all_hosts[:max_hosts]]
+    else:
+        ips_to_scan = [str(ip) for ip in all_hosts]
+
+    def scan_one(ip_str):
+        for p in ports:
+            if tcp_probe(ip_str, p):
+                return ip_str
         return None
 
-def ping_host(ip):
-    ping_cmd = f"ping -n 1 -w 300 {ip}" if platform.system() == "Windows" else f"ping -c 1 -W 1 {ip}"
-    output = run(ping_cmd)
-    if "TTL=" in output or "ttl=" in output:
-        return ip
+    found = set()
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = {ex.submit(scan_one, ip): ip for ip in ips_to_scan}
+        for fut in futures:
+            try:
+                result = fut.result(timeout=0.4)
+                if result and is_valid_host(result, network):
+                    found.add(result)
+            except Exception:
+                continue
+
+    return sorted(found)
+
+# -------------------------
+# ICMP fallback
+# -------------------------
+
+def icmp_ping(ip: str) -> str | None:
+    system = platform.system()
+    cmd = f"ping -n 1 -w 300 {ip}" if system == "Windows" else f"ping -c 1 -W 1 {ip}"
+    try:
+        out = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode(errors="ignore")
+        if "TTL=" in out or "ttl=" in out:
+            return ip
+    except Exception:
+        return None
     return None
 
-def arp_scan():
-    return run("arp -a" if platform.system() == "Windows" else "arp -n")
 
-def reverse_dns(ip):
-    out = run(f"nslookup {ip}")
-    m = extract_regex(r"name = ([^\s]+)\.", out)
-    return m if m else None
+def icmp_sweep_parallel(network: ipaddress.IPv4Network, workers=80, max_hosts=1024):
+    all_hosts = list(network.hosts())
+    if len(all_hosts) > max_hosts:
+        ips = [str(ip) for ip in all_hosts[:max_hosts]]
+    else:
+        ips = [str(ip) for ip in all_hosts]
 
-def phase1_network_discovery(ip, mask, gateway):
-    print("\n=== PHASE 1: LOCAL NETWORK DISCOVERY ===\n")
+    found = set()
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        for result in ex.map(icmp_ping, ips):
+            if result and is_valid_host(result, network):
+                found.add(result)
 
-    subnet = calculate_subnet(ip, mask)
-    if not subnet:
-        print("Could not calculate subnet automatically.")
-        return
+    return sorted(found)
 
-    print(f"[*] Scanning subnet: {subnet}")
+# -------------------------
+# UDP Reachability (LIGHTWEIGHT)
+# -------------------------
 
-    alive_hosts = []
-    with ThreadPoolExecutor(max_workers=100) as executor:
-        results = executor.map(ping_host, [str(host) for host in subnet.hosts()])
-        alive_hosts = [r for r in results if r]
+def udp_probe(ip: str, port: int, timeout=0.2) -> bool:
+    """Send empty UDP packet, treat any reply as 'alive'. No protocol parsing."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(timeout)
+        s.sendto(b"", (ip, port))
+        try:
+            s.recvfrom(1024)
+            return True   # service responded
+        except socket.timeout:
+            return False
+    except Exception:
+        return False
 
-    print("\n[+] Alive hosts found:")
-    for h in alive_hosts:
-        print(" -", h)
+# -------------------------
+# OS Fingerprinting (TTL-based)
+# -------------------------
 
-    print("\n[+] ARP Scan Results:")
-    print(arp_scan())
+def guess_os(ip: str) -> str:
+    """Lightweight TTL-based OS guess for Phase-1."""
+    try:
+        system = platform.system()
+        cmd = f"ping -c 1 -W 1 {ip}" if system != "Windows" else f"ping -n 1 -w 300 {ip}"
+        out = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode(errors="ignore")
 
-    print("\n[+] Common Key Infrastructure (guesses):")
-    def mark(ip_addr):
-        return "[FOUND]" if ip_addr in alive_hosts else "[?]"
+        m = re.search(r"ttl[=:](\d+)", out, re.I)
+        if not m:
+            return "unknown"
 
-    net = list(subnet.hosts())
-    common = {
-        "Gateway (.1)": str(net[0]),
-        "Likely Server (.10)": f"{subnet.network_address + 10}",
-        "Likely Printer (.100)": f"{subnet.network_address + 100}",
-        "Likely Switch (.254)": f"{subnet.network_address + 254}",
+        ttl = int(m.group(1))
+        if ttl <= 70:
+            return "linux"
+        if ttl <= 130:
+            return "windows"
+        if ttl > 200:
+            return "network_device"
+    except:
+        pass
+
+    return "unknown"
+
+# -------------------------
+# Classification (shallow)
+# -------------------------
+
+def classify_host(ip, tcp_ports, udp_ports, os_guess):
+    default_gw = netifaces.gateways().get('default', {}).get(netifaces.AF_INET, [None])[0]
+
+    if ip == default_gw:
+        return "gateway"
+
+    if 9100 in tcp_ports or 631 in tcp_ports:
+        return "printer"
+
+    if 80 in tcp_ports or 443 in tcp_ports:
+        return "web_server"
+
+    if 22 in tcp_ports:
+        return "ssh_host"
+
+    if 53 in udp_ports:
+        return "dns_like"
+
+    return f"unknown_{os_guess}"
+
+# -------------------------
+# MAIN
+# -------------------------
+
+def run_phase1(
+    ip: str,
+    netmask: str,
+    methods=None,
+    skip_arp=False,
+    tcp_ports=None,
+    workers=60,
+    fallback_icmp=False
+):
+    print("\n=== PHASE 1: Local Network Discovery ===\n")
+
+    network = calculate_subnet_range(ip, netmask)
+    print(f"[*] Subnet calculated: {network}\n")
+
+    if ip.startswith("169.254."):
+        print("[!] Warning: APIPA (169.254.x.x). Discovery will be limited.\n")
+
+    methods = methods or ["tcp"]
+    discovered = set()
+
+    # 1) ARP
+    if "arp" in methods and not skip_arp:
+        print("[+] ARP scan...")
+        arp_ips = arp_scan_local(network)
+        print(f"    ARP: {arp_ips}")
+        discovered.update(arp_ips)
+
+    # 2) TCP SYN
+    if "tcp" in methods:
+        print("[+] TCP discovery...")
+        tcp_hosts = tcp_discovery(network, ports=tcp_ports, workers=workers)
+        print(f"    TCP responders: {tcp_hosts}")
+        discovered.update(tcp_hosts)
+
+    # 3) ICMP fallback
+    if fallback_icmp:
+        print("[+] ICMP sweep...")
+        icmp_hosts = icmp_sweep_parallel(network, workers=workers)
+        print(f"    ICMP responders: {icmp_hosts}")
+        discovered.update(icmp_hosts)
+
+    # Validate final list
+    validated = sorted([h for h in discovered if is_valid_host(h, network)])
+
+    # Classification stage
+    discovered_devices = {}
+    print("\n[+] Classifying discovered hosts...")
+
+    for host in validated:
+        tcp_open = scan_open_ports(host := host)
+        udp_open = [p for p in COMMON_UDP_PORTS if udp_probe(host, p)]
+        os_guess = guess_os(host)
+
+        discovered_devices[host] = {
+            "tcp": tcp_open,
+            "udp": udp_open,
+            "os": os_guess,
+            "type": classify_host(host, tcp_open, udp_open, os_guess)
+        }
+
+        print(f"    {host} → TCP:{tcp_open} UDP:{udp_open} OS:{os_guess} TYPE:{discovered_devices[host]['type']}")
+
+    print("\n[+] Phase 1 complete.\n")
+    return {
+        "network": str(network),
+        "discovered_hosts": validated,
+        "details": discovered_devices,
+        "methods": methods
     }
-
-    for name, ip_addr in common.items():
-        print(f"{name}: {ip_addr} {mark(ip_addr)}")
-
-    print("\n[+] Reverse DNS for alive hosts:")
-    for h in alive_hosts:
-        host = reverse_dns(h)
-        if host:
-            print(f"{h} -> {host}")
-
-    print("\nFinished PHASE 1.")
