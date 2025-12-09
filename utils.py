@@ -3,33 +3,42 @@ File: utils.py
 Author: Noelia Carrasco Vilar
 Date: 2025-12-08
 Description:
-    Utils file
+    Utils file with general save function for any dict.
 """
 
 import os
 import json
 import yaml
 from datetime import datetime
-from scanner.discovery.phase0_selfdiscovery import run_phase0
 
-def save_phase0_results(results):
-    """Save Phase 0 results to JSON and YAML files."""
+def save_results(results: dict, label: str = "data", output_dir: str = "testing/data"):
+    """
+    Save any dictionary to JSON and YAML files.
     
-    print(results)
-
-    # Create output directory
-    output_dir = os.path.join("testing", "data")
+    Args:
+        results (dict): The dictionary to save.
+        label (str): Label to prefix the filename (default 'data').
+        output_dir (str): Directory to save files (default 'testing/data').
+    
+    Returns:
+        Tuple[str, str]: Paths to the JSON and YAML files.
+    """
+    
+    if not isinstance(results, dict):
+        raise ValueError("Results must be a dictionary")
+    
+    # Ensure output directory exists
     os.makedirs(output_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Save to JSON
-    json_file = os.path.join(output_dir, f"phase0_{timestamp}.json")
+    # Save JSON
+    json_file = os.path.join(output_dir, f"{label}_{timestamp}.json")
     with open(json_file, 'w') as f:
         json.dump(results, f, indent=2, default=str)
     
-    # Save to YAML
-    yaml_file = os.path.join(output_dir, f"phase0_{timestamp}.yml")
+    # Save YAML
+    yaml_file = os.path.join(output_dir, f"{label}_{timestamp}.yml")
     with open(yaml_file, 'w') as f:
         yaml.dump(results, f, default_flow_style=False)
     
