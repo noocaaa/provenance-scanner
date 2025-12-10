@@ -1,0 +1,181 @@
+Category,Subcategory,Item,Description,Type,Priority,Status,Due Date,Notes,Risk Level,Validation Status
+Asset Inventory,Asset Identity,Hostname,Hostname of the asset,Static,High,Pending,2026-01-02 09:09:14.870298,,Low,Not Validated
+Asset Inventory,Asset Identity,IP addresses,IP address(es) and network range(s),Static,High,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Asset Inventory,Asset Identity,OS + version,Operating system and version,Static,High,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Asset Inventory,Asset Identity,Location,"Location (on-premises, cloud, hybrid)",Static,Medium,Pending,2026-01-02 09:09:14.870298,,Low,Not Validated
+Asset Inventory,Asset Identity,Role,"Role (app server, DB, proxy, firewall, NAS, printer, etc.)",Static,High,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Asset Inventory,Hardware Specifications,CPU specifications,CPU specifications,Static,High,Pending,2026-01-02 09:09:14.870298,,Low,Not Validated
+Asset Inventory,Hardware Specifications,RAM specifications,RAM specifications,Static,Medium,Pending,2026-01-02 09:09:14.870298,,Low,Not Validated
+Asset Inventory,Hardware Specifications,Storage specifications,Storage specifications,Static,Medium,Pending,2026-01-02 09:09:14.870298,,Low,Not Validated
+Asset Inventory,Hardware Specifications,Server/device model,Server/device model,Static,Low,Pending,2026-01-02 09:09:14.870298,,Low,Not Validated
+Asset Inventory,Hardware Specifications,Virtual or physical,Virtual or physical deployment,Static,Medium,Pending,2026-01-02 09:09:14.870298,,Low,Not Validated
+Asset Inventory,Hardware Specifications,Hypervisor,Hypervisor (if applicable),Static,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Asset Inventory,Installed Software,List of packages/programs,List of packages/programs,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Asset Inventory,Installed Software,Exact versions,Exact versions of software,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Asset Inventory,Installed Software,Known dependencies,Known dependencies between software,Static,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Asset Inventory,Installed Software,Firmware,"Firmware (for printers, routers, firewalls)",Static,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Asset Inventory,Exposed Services,Open ports,Open ports on the asset,Static,Medium,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Asset Inventory,Exposed Services,Used protocols,Used protocols on open ports,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Asset Inventory,Exposed Services,Active services and versions,Active services and their versions,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Asset Inventory,Additional Considerations,Interdependencies between assets,"Interdependencies between assets (e.g., app server → database server)",Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Asset Inventory,Additional Considerations,Asset lifecycle tracking,Asset lifecycle tracking (decommissioned or upgraded assets),Static,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+System Configuration,OS Configuration,Authentication policies,Authentication policies,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,OS Configuration,Local firewall configuration,Local firewall configuration,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,OS Configuration,Enabled/disabled services,Enabled/disabled services,Static,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+System Configuration,OS Configuration,Auto-start programs,Auto-start programs,Static,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+System Configuration,User Management,Local users,Local users on the system,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,User Management,User groups,User groups,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,User Management,Permissions per user,Permissions per user,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,User Management,Admin roles,Admin roles,Static,Critical,Pending,2026-01-02 09:09:14.870298,,Critical,Not Validated
+System Configuration,User Management,SSH keys,SSH keys,Static,Critical,Pending,2026-01-02 09:09:14.870298,,Critical,Not Validated
+System Configuration,User Management,Password policies,Password policies,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,Sensitive Files,Critical paths,"Critical paths (/etc, logs, config files)",Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,Sensitive Files,Folder permissions,Folder permissions,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,Sensitive Files,Server configs,"Server configs (nginx.conf, my.cnf, etc.)",Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+System Configuration,Security Controls,Security patches and updates,Security patches and updates (focus on pending patches),Static,Critical,Pending,2026-01-02 09:09:14.870298,,Critical,Not Validated
+System Configuration,Security Controls,Critical patches,Critical patches (zero-day vulnerabilities),Static,Critical,Pending,2026-01-02 09:09:14.870298,,Critical,Not Validated
+System Configuration,Security Controls,System hardening,System hardening (baseline security configurations),Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Network Architecture,Topology,Subnets,Subnets,Static,High,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Network Architecture,Topology,VLANs,VLANs,Static,High,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Network Architecture,Topology,Gateways,Gateways,Static,High,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Network Architecture,Topology,Routers and switches,Routers and switches,Static,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Network Architecture,Topology,NAT/PAT configurations,NAT/PAT configurations,Static,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Network Architecture,Topology,Security zones,"Security zones (DMZ, internal, guest, IoT)",Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Network Architecture,Firewalls,Firewall rules,"Rules (source, destination, protocol, action)",Static+Dynamic,Critical,Pending,2026-01-02 09:09:14.870298,,Critical,Not Validated
+Network Architecture,Firewalls,Policies by zone,Policies by zone,Static,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Network Architecture,Firewalls,Active inspections,"Active inspections (IPS/IDS, WAF)",Dynamic,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Network Architecture,Communications,Traffic flows,"Traffic flows between services (app → DB, app → cache, etc.)",Dynamic,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Network Architecture,Communications,Used protocols,"Used protocols (HTTP, gRPC, SSH, SMB)",Dynamic,Medium,Pending,2026-01-02 09:09:14.870298,,Medium,Not Validated
+Network Architecture,Communications,Relevant ports,Relevant ports,Static+Dynamic,High,Pending,2026-01-02 09:09:14.870298,,High,Not Validated
+Network Architecture,Communications,Latencies,Latencies (optional),Low,Medium,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+Network Architecture,Security Monitoring,Intrusion detection/prevention systems,Intrusion detection/prevention systems (IDS/IPS),Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Network Architecture,Security Monitoring,Anomalous traffic monitoring,Anomalous traffic monitoring,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Network Architecture,Security Monitoring,Lateral movement detection,Lateral movement detection,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Network Architecture,Security Monitoring,Data exfiltration pattern detection,Data exfiltration pattern detection,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Applications and Services,Basic Information,Service name,Service name,Static,High,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Applications and Services,Basic Information,Function,Function,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+Applications and Services,Basic Information,Internal and external dependencies,Internal and external dependencies,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Applications and Services,Exposed Endpoints,URLs/routes,URLs/routes,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Applications and Services,Exposed Endpoints,API types,"API types (REST, SOAP, GraphQL)",Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Applications and Services,Exposed Endpoints,Versioning,"Versioning (v1, v2)",Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Applications and Services,Configuration,Environment variables,Environment variables,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Applications and Services,Configuration,.env files,.env files,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Applications and Services,Configuration,Deployment parameters,Deployment parameters,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Applications and Services,Configuration,Log configurations,Log configurations,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Applications and Services,Configuration,Cache/session configurations,Cache/session configurations,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Applications and Services,Containers and Orchestration,Images and versions,Images and versions,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Applications and Services,Containers and Orchestration,Volumes,Volumes,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Applications and Services,Containers and Orchestration,Secrets and configmaps,Secrets and configmaps,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Applications and Services,Containers and Orchestration,"Pods, deployments, services","Pods, deployments, services (Kubernetes)",Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Applications and Services,Security Enhancements,Access control policies,Access control policies,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Applications and Services,Security Enhancements,Third-party services,"Third-party services (OAuth providers, API integrations)",Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Databases,DB Identity,Type,"Type (MySQL, PostgreSQL, MongoDB, etc.)",Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Databases,DB Identity,Version,Version,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Databases,DB Identity,Host and port,Host and port,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Databases,Configuration,Users and roles,Users and roles,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Databases,Configuration,Permissions per database,Permissions per database,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Databases,Configuration,Password policies,Password policies,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Databases,Configuration,Encryption in transit and at rest,Encryption in transit and at rest,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Databases,Configuration,Critical configs,"Critical configs (max_connections, replica settings)",Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Databases,Dynamic Data,Active connections,Active connections,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Databases,Dynamic Data,Slow queries/logs,Slow queries/logs,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Databases,Dynamic Data,Replication/lag status,Replication/lag status,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Databases,Dynamic Data,Backup configurations and periodicity,Backup configurations and periodicity,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Databases,Security Auditing,Database audit information,Database audit information,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Databases,Security Auditing,Encryption details,Encryption details,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Security and Access,Authentication,Authentication systems,"Authentication systems (LDAP, AD, OAuth, JWT, SSO)",Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Security and Access,Authentication,Token expiration rules,Token expiration rules,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Security and Access,Authentication,SSH key management,SSH key management / API keys,Static+Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Security and Access,Encryption,TLS certificates,TLS certificates,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Security and Access,Encryption,Supported TLS/SSL versions,Supported TLS/SSL versions,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Security and Access,Encryption,Cipher suites,Cipher suites,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Security and Access,Encryption,Expired or soon-to-expire certificates,Expired or soon-to-expire certificates,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Security and Access,Logs,Types of logs,Types of logs,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Security and Access,Logs,Storage locations,Storage locations,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Security and Access,Logs,Retention policies,Retention policies,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Security and Access,Logs,Access controls,Access controls for logs,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Security and Access,Policies,MFA enabled/disabled status,MFA enabled/disabled status,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Security and Access,Policies,Hardening policies,Hardening policies,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Security and Access,Policies,Role-based access control,Role-based access control (RBAC),Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Security and Access,Advanced Security,Privileged access management,Privileged access management (PAM),Static+Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Security and Access,Advanced Security,Just-in-time access,Just-in-time access for sensitive systems,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Security and Access,Advanced Security,Endpoint detection and response,"Endpoint detection and response (EDR: CrowdStrike, Carbon Black)",Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Monitoring and Metrics,System Health,CPU usage,"CPU, RAM, I/O usage",Dynamic,High,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Monitoring and Metrics,System Health,Network usage,Network usage,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+Monitoring and Metrics,System Health,Load average,Load average,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Monitoring and Metrics,Service Status,Uptime,Uptime,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Monitoring and Metrics,Service Status,Latency per service,Latency per service,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Monitoring and Metrics,Service Status,4xx/5xx errors,4xx/5xx errors (APIs),Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Monitoring and Metrics,Relevant Events,Retries,Retries,Dynamic,Low,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+Monitoring and Metrics,Relevant Events,Connection drops,Connection drops,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Monitoring and Metrics,Relevant Events,APM alerts,APM alerts (Application Performance Monitoring),Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Monitoring and Metrics,Alerting and Response,Alerting mechanisms,Alerting mechanisms,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Monitoring and Metrics,Alerting and Response,Response plans,"Response plans (CPU spikes, memory consumption)",Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Monitoring and Metrics,Alerting and Response,Anomalous logins detection,Anomalous logins detection,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Monitoring and Metrics,Alerting and Response,Failed login attempts monitoring,Failed login attempts monitoring,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+External Dependencies,External APIs,List of APIs,List of APIs,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+External Dependencies,External APIs,Authentication types,Authentication types,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+External Dependencies,External APIs,Frequency of use,Frequency of use,Dynamic,Low,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+External Dependencies,External APIs,Error rates,Error rates,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+External Dependencies,Cloud Services,Load balancers,Load balancers,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+External Dependencies,Cloud Services,Storage buckets,Storage buckets,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+External Dependencies,Cloud Services,Serverless functions,Serverless functions,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+External Dependencies,Cloud Services,CDN services,CDN services,Static,Low,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+External Dependencies,Risk Management,Third-party risk tracking,Third-party risk tracking,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+External Dependencies,Risk Management,Vulnerability monitoring,Vulnerability monitoring for external APIs,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Special Devices,Useful Data,Model and firmware,Model and firmware,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Special Devices,Useful Data,Network configuration,"Network configuration (IP, port)",Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Special Devices,Useful Data,Enabled protocols,"Enabled protocols (IPP, LPD)",Static,Low,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+Special Devices,Useful Data,Authentication options,Authentication options,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Special Devices,Useful Data,Basic logs available,Basic logs available,Static,Low,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+Special Devices,Security Considerations,Peripheral device security,Peripheral device security,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Special Devices,Security Considerations,Access logs,Access logs for non-traditional IT assets,Dynamic,Low,Pending,2026-01-02 09:09:14.880221,,Low,Not Validated
+Special Devices,Security Considerations,Unusual behavior monitoring,Unusual behavior monitoring,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Special Devices,Security Considerations,Firmware vulnerability management,Firmware vulnerability management,Static+Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Special Devices,Security Considerations,IoT device firmware updates,IoT device firmware updates,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Identity & Access Governance,Federated identity sources,"Federated identity sources (IdP: Okta, Azure AD, Keycloak)",Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Identity & Access Governance,Trust relationships,Trust relationships between domains,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Identity & Access Governance,Privileged accounts,"Privileged accounts (domain admin, cloud admin)",Static+Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Identity & Access Governance,Service accounts,Service accounts (machine identities),Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Identity & Access Governance,Credential scanning,"Credential scanning (weak SSH keys, leaked tokens, hardcoded secrets)",Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Attack Surface & Vulnerability Mapping,CVE matching,CVE matching,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Attack Surface & Vulnerability Mapping,CVSS score,CVSS score,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Attack Surface & Vulnerability Mapping,Exploit availability,"Exploit availability (Metasploit, ExploitDB)",Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Attack Surface & Vulnerability Mapping,Patch status,Patch status (fixed / vulnerable / exploitable),Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Attack Surface & Vulnerability Mapping,Insecure default configurations,Insecure default configurations,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Attack Surface & Vulnerability Mapping,Dangerous protocols,"Dangerous protocols (FTP, Telnet, SMBv1)",Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Attack Surface & Vulnerability Mapping,Over-permissive firewall rules,Over-permissive firewall rules,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Attack Surface & Vulnerability Mapping,Publicly reachable assets,Publicly reachable assets (attack surface),Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Behavioral & Zero-Trust Signals,User behavior anomalies,User behavior anomalies (UBEA),Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Behavioral & Zero-Trust Signals,Device trust level,"Device trust level (OS updates, EDR installation)",Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Behavioral & Zero-Trust Signals,Network trust segmentation,Network trust segmentation (microsegmentation),Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Behavioral & Zero-Trust Signals,Least privilege compliance,Least privilege compliance,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Behavioral & Zero-Trust Signals,Zero Trust implementation status,Zero Trust implementation status,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Behavioral & Zero-Trust Signals,Continuous verification mechanisms,Continuous verification mechanisms,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Behavioral & Zero-Trust Signals,Policy enforcement points,Policy enforcement points,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Resilience & Reliability Data,Failover mechanisms,Failover mechanisms,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Resilience & Reliability Data,Replication health,Replication health,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Resilience & Reliability Data,Leader election status,"Leader election status (distributed DBs, Kubernetes)",Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Resilience & Reliability Data,Cluster membership changes,Cluster membership changes,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Resilience & Reliability Data,Network partitions,Network partitions,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Resilience & Reliability Data,Disaster recovery and backup,Disaster recovery and backup recovery-test status,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Resilience & Reliability Data,Subtle failure patterns,Subtle failure patterns,Dynamic,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Supply Chain Security,Software Bill of Materials,Software Bill of Materials (SBOM),Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Supply Chain Security,Docker image provenance,Docker image provenance,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Supply Chain Security,Package signatures,"Package signatures (Sigstore, Cosign)",Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Supply Chain Security,Dependency vulnerabilities,Dependency vulnerabilities,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Supply Chain Security,Malicious packages detection,Malicious packages detection,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Policy Compliance & Governance,CIS benchmarks compliance,CIS benchmarks compliance,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Policy Compliance & Governance,ISO27001 controls alignment,ISO27001 controls alignment,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Policy Compliance & Governance,NIST CSF implementation,NIST CSF implementation,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Policy Compliance & Governance,Custom company policies,Custom company policies,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Policy Compliance & Governance,Compliance drift tracking,Compliance drift tracking,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Endpoint Security Posture,Antivirus/EDR status,Antivirus/EDR status,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Endpoint Security Posture,Agent health,"Agent health (CrowdStrike sensors, Elastic agents)",Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Endpoint Security Posture,Tampering attempts,Tampering attempts,Dynamic,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Company Related Data,Endpoint Security Posture,Security logs collection status,Security logs collection status,Dynamic,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Endpoint Security Posture,Missing audit policies,Missing audit policies,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
+Company Related Data,Cloud-Specific Metadata,Azure architecture metadata,Azure architecture metadata,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Cloud-Specific Metadata,AWS environment data,AWS environment data,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Cloud-Specific Metadata,GCP infrastructure information,GCP infrastructure information,Static,Medium,Pending,2026-01-02 09:09:14.880221,,Medium,Not Validated
+Company Related Data,Cloud-Specific Metadata,Multi-cloud integration details,Multi-cloud integration details,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
