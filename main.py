@@ -9,8 +9,14 @@ Description:
 from scanner.discovery.phase0_selfdiscovery import run_phase0
 from scanner.discovery.phase1_localnetworkdiscovery import run_phase1
 from scanner.network.interface_selector import select_best_interfaces
+from scanner.provenance.snapshot_formatter import build_snapshot
+from scanner.provenance.graph_builder import GraphBuilder
+from scanner.provenance.neo4j_push import Neo4jConnector
+from dotenv import load_dotenv
+from utils import save_results
 from utils import save_results
 
+import os
 
 if __name__ == "__main__":
 
@@ -94,5 +100,31 @@ if __name__ == "__main__":
 
     # Save Phase 1 as ONE file
     save_results(all_phase1, label="phase1")
+
+
+    snapshot = build_snapshot(all_results)
+    # -----------------------
+    # GRAPH BUILDING
+    # -----------------------
+    # import json
+    #
+    # snapshot_file ="testing/data/snapshot_20251209_111238.json"
+    #
+    # with open(snapshot_file, "r", encoding="utf-8") as f:
+    #     snapshot = json.load(f)
+    #
+    builder = GraphBuilder()
+    G = builder.build(snapshot)
+
+    load_dotenv()
+
+    uri = os.getenv("NEO4J_URI")
+    user = os.getenv("NEO4J_USER")
+    password = os.getenv("NEO4J_PASSWORD")
+
+    neo = Neo4jConnector(uri, user, password)
+    neo.clear_database()
+    neo.push_graph(G)
+    neo.close()
 
     print("\n=== Discovery Completed ===")
