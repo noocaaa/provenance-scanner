@@ -151,6 +151,24 @@ def _count_arp_neighbors(ip: str) -> int:
     except:
         return 0
 
+def running_inside_vagrant():
+    try:
+        # Detect user "vagrant"
+        if "vagrant" in open("/etc/passwd").read():
+            return True
+    except:
+        pass
+
+    try:
+        # Detect VirtualBox + Vagrant env variables
+        env = open("/proc/1/environ", "rb").read().decode(errors="ignore").lower()
+        if "vagrant" in env:
+            return True
+    except:
+        pass
+
+    return False
+
 
 # ===================================================================
 # SCORING LOGIC
@@ -165,6 +183,20 @@ def score_interface(name: str, ip: str, netmask: str, mac: str):
     # ---------- 1. Reject APIPA ----------
     if is_apipa(ip):
         return -999, "APIPA address"
+
+    # ------- Special handling for Vagrant -------
+    if running_inside_vagrant():
+        # Host-Only
+        if ip.startswith("192.168.56."):
+            return 100, "Vagrant Host-Only network"
+
+        # NAT for testing purpose
+        if ip.startswith("10.0.2."):
+            return 80, "Vagrant NAT network"
+
+        # Skip other interfaces
+        return -999, "Non-Vagrant interface skipped inside VM"
+
 
     # ---------- 2. Reject virtual/tunnel interfaces ----------
     if _is_ignored_name(name):
