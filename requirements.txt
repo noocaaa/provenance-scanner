@@ -2,5 +2,8 @@ psutil
 pysnmp
 scapy
 netifaces
+networkx
+neo4j 
+python-dotenv
 
 # Note: Vagrant must be installed separately from https://www.vagrantup.com/
