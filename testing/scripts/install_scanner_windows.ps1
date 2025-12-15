@@ -1,11 +1,19 @@
-Set-ExecutionPolicy Bypass -Scope Process -Force
+# Enable OpenSSH Server
+Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
 
-# Install Python if missing
-if (-not (Get-Command python.exe -ErrorAction SilentlyContinue)) {
-    Write-Output "Python not found, please install manually or add automatic installer."
-}
+# Start and enable SSH
+Start-Service sshd
+Set-Service -Name sshd -StartupType Automatic
 
-New-Item -ItemType Directory -Path "C:\scanner" -Force
-Copy-Item -Path "C:\vagrant\scanner\*" -Destination "C:\scanner" -Recurse -Force
+# Allow SSH in firewall
+New-NetFirewallRule `
+  -Name sshd `
+  -DisplayName "OpenSSH Server" `
+  -Enabled True `
+  -Direction Inbound `
+  -Protocol TCP `
+  -Action Allow `
+  -LocalPort 22
 
-pip install -r C:\scanner\requirements.txt
+# Optional: install Python
+winget install --id Python.Python.3.11 -e --silent

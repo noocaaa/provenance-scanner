@@ -5,7 +5,7 @@ from datetime import datetime
 def show_data_table(filtered_df, full_df, save_callback):
     """Mostrar vista de tabla de datos"""
     st.header("Data Collection Table")
-    
+
     if filtered_df.empty:
         st.info("No data available with current filters.")
         

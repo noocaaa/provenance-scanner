@@ -7,7 +7,7 @@ from utils.initial_data import get_full_initial_data
 def load_data():
     """Cargar datos desde CSV o inicializar si no existe"""
     try:
-        df = pd.read_csv("data_collection_dashboard/data_collection_progress.csv")
+        df = pd.read_csv("data/data_collection_progress.csv")
         
         # Asegurar tipos de datos correctos
         if "Due Date" in df.columns:
@@ -27,7 +27,7 @@ def save_data(df):
     if "Notes" in df.columns:
         df["Notes"] = df["Notes"].astype(str).fillna('')
     
-    df.to_csv("data_collection_dashboard/data_collection_progress.csv", index=False)
+    df.to_csv("data/data_collection_progress.csv", index=False)
     st.session_state['last_update'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def initialize_data():

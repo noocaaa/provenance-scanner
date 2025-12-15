@@ -7,7 +7,6 @@ Description:
 """
 from neo4j import GraphDatabase
 
-
 class Neo4jConnector:
 
     def __init__(self, uri, user, password):
@@ -25,15 +24,14 @@ class Neo4jConnector:
             # ---------------------------
             for node_id, attrs in G.nodes(data=True):
 
-                label = attrs.get("label", "Node")
+                label = attrs.get("kind", attrs.get("label", "Node"))
                 clean_props = {}
 
-                # all safe properties
                 for k, v in attrs.items():
+                    if k == "label":
+                        continue
                     if isinstance(v, (str, int, float, bool)) or v is None:
                         clean_props[k] = v
-                    else:
-                        print(f"[WARNING] Ignoring complex property on {node_id}: {k}={v}")
 
                 # guarantee ID is a simple string
                 clean_props["neo_id"] = node_id
@@ -51,7 +49,7 @@ class Neo4jConnector:
             # CREATE RELATIONSHIPS
             # ---------------------------
             for u, v, attrs in G.edges(data=True):
-                rel_type = attrs.get("rel_type") or "RELATED_TO"
+                rel_type = attrs.get("rel_type", "RELATED_TO").upper()
                 rel_type = rel_type.replace(" ", "_").upper()
 
                 session.run(

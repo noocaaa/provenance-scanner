@@ -5,5 +5,6 @@ netifaces
 networkx
 neo4j 
 python-dotenv
-
+pyinstaller
+pyyaml
 # Note: Vagrant must be installed separately from https://www.vagrantup.com/

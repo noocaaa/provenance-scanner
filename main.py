@@ -5,18 +5,53 @@ Date: 2025-12-07
 Description:
     Entrypoint to execute the discovery phase.
 """
-
+from scanner.agents.ssh_agent import SSHAgent
 from scanner.discovery.phase0_selfdiscovery import run_phase0
 from scanner.discovery.phase1_localnetworkdiscovery import run_phase1
 from scanner.network.interface_selector import select_best_interfaces
 from scanner.provenance.snapshot_formatter import build_snapshot
 from scanner.provenance.graph_builder import GraphBuilder
 from scanner.provenance.neo4j_push import Neo4jConnector
+from scanner.agents.correlation.topology_builder import TopologyBuilder
+from scanner.agents.remote_runner.runner import run_all
+
 from dotenv import load_dotenv
-from utils import save_results
 from utils import save_results
 
 import os
+
+def select_phase2_targets(phase1: dict, local_ips: set[str], local_hostname: str | None):
+    valid_hosts = set()
+
+    iface_meta = {i["interface"]: i for i in phase1.get("interfaces_scanned", [])}
+
+    for iface, result in phase1.get("results", {}).items():
+        meta = iface_meta.get(iface, {})
+        reason = (meta.get("reason") or "").lower()
+        network_role = "laboratory" if "host-only" in reason else "egress"
+
+        if network_role != "laboratory":
+            continue
+
+        for ip in result.get("discovered_hosts", []):
+            if ip in local_ips:
+                continue
+
+            details = result.get("details", {}).get(ip, {})
+
+            if details.get("hostname") == local_hostname:
+                continue
+
+            tcp = details.get("tcp", [])
+            type_guess = details.get("type")
+
+            if type_guess in ("gateway", "network_device"):
+                continue
+
+            if 22 in tcp:
+                valid_hosts.add(ip)
+
+    return sorted(valid_hosts)
 
 if __name__ == "__main__":
 
@@ -25,7 +60,6 @@ if __name__ == "__main__":
     # -----------------------
     # PHASE 0 — SELF DISCOVERY
     # -----------------------
-    print("\n=== Running Phase 0: Self-Discovery ===")
     phase0 = run_phase0()
     all_results["phase0"] = phase0
     save_results(phase0, label="phase0")
@@ -85,9 +119,6 @@ if __name__ == "__main__":
 
         networks_discovered.add(phase1_result["network"])
 
-    # -----------------------
-    # BUILD OVERALL SUMMARY
-    # -----------------------
     all_phase1["overall_summary"] = {
         "total_interfaces_scanned": len(all_phase1["interfaces_scanned"]),
         "total_unique_hosts": len(unique_hosts),
@@ -101,20 +132,81 @@ if __name__ == "__main__":
     # Save Phase 1 as ONE file
     save_results(all_phase1, label="phase1")
 
+    # -----------------------
+    # PHASE 2 — EXTRACTOR
+    # -----------------------
 
-    snapshot = build_snapshot(all_results)
+    print("\n=== PHASE 2: LOCAL EXTRACTION ===")
+
+    all_phase2 = {}
+
+    local_ip = phase0.get("network", {}).get("ip")
+    local_ips = {
+        i["ip"]
+        for i in all_results["phase1"].get("interfaces_scanned", [])
+        if i.get("ip")
+    }
+
+    local_hostname = (
+            phase0.get("system", {}).get("hostname")
+            or phase0.get("os", {}).get("hostname")
+            or phase0.get("hostname")
+    )
+
+    phase2_targets = select_phase2_targets(
+        all_results["phase1"],
+        local_ips=local_ips,
+        local_hostname=local_hostname
+    )
+
+    all_phase2[local_ip] = run_all()
+
+    for ip in phase2_targets:
+        print(f"[+] Deploying agent to {ip}")
+
+        if ip in local_ips:
+            continue
+
+        agent = SSHAgent(
+            host=ip,
+            user="vagrant",
+            key_path="~/.ssh/cluster_key"
+        )
+
+        agent.deploy()
+        agent.execute()
+        result = agent.collect(local_output_dir="testing/data")
+        agent.cleanup()
+
+        all_phase2[ip] = result
+
+
+    all_results["phase2"] = all_phase2
+    save_results(all_phase2, label="phase2_distributed")
+
+    # -----------------------
+    # PHASE 3 — SYSTEM TOPOLOGY / CONSTRUCTION
+    # -----------------------
+
+    print("\n=== PHASE 3: SYSTEM CONSTRUCTION ===")
+
+    topology_builder = TopologyBuilder(all_results)
+    system_model = topology_builder.build()
+
+    # Reuse your existing utility (perfect fit)
+    save_results(system_model, label="system_construction")
+
     # -----------------------
     # GRAPH BUILDING
     # -----------------------
-    # import json
-    #
-    # snapshot_file ="testing/data/snapshot_20251209_111238.json"
-    #
-    # with open(snapshot_file, "r", encoding="utf-8") as f:
-    #     snapshot = json.load(f)
-    #
+    snapshot = build_snapshot(all_results)
+
     builder = GraphBuilder()
-    G = builder.build(snapshot)
+    builder.build(snapshot)
+
+    builder.add_phase0(all_results["phase0"])
+    builder.add_phase1(all_results["phase1"])
+    builder.add_phase2(all_results["phase2"])
 
     load_dotenv()
 
@@ -124,7 +216,7 @@ if __name__ == "__main__":
 
     neo = Neo4jConnector(uri, user, password)
     neo.clear_database()
-    neo.push_graph(G)
+    neo.push_graph(builder.G)
     neo.close()
 
     print("\n=== Discovery Completed ===")

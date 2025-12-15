@@ -9,9 +9,9 @@ venv/
 *.swp
 
 # Data outputs
-data/output/*.yml
-data/output/*.yaml
-data/output/*.json
+testing/data/*.yml
+testing/data/*.yaml
+testing/data/*.json
 
 # Logs
 *.log
@@ -33,6 +33,19 @@ vagrant/.vagrant/
 .DS_Store
 Thumbs.db
 
+# KEYS
+*.key
+*.pem
+*.pub
+id_rsa
+
 # Internal files
 Organization.md
 NOT_UPLOAD
+
+.venv_build
+
+/build
+/docs
+/lib
+/testing/cluster_key
