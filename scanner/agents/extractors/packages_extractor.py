@@ -8,6 +8,7 @@ Description:
 
 import platform
 import subprocess
+import json
 
 def extract(agent=None):
     pkgs = []
@@ -20,7 +21,7 @@ def extract(agent=None):
                 capture_output=True, text=True
             )
             if r.returncode == 0:
-                pkgs = r.stdout
+                pkgs = json.loads(r.stdout)
 
         elif system == "Windows":
             r = subprocess.run(
@@ -28,11 +29,10 @@ def extract(agent=None):
                 capture_output=True, text=True
             )
             if r.returncode == 0:
-                pkgs = r.stdout
+                pkgs = json.loads(r.stdout)
     except:
         pass
 
     return {
-        "python_packages": pkgs,
-        "note": "system-level packages collected in later phase",
+        "python_packages_preview": pkgs,
     }

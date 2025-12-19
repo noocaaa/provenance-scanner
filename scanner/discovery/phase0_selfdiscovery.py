@@ -4,20 +4,25 @@ Author: Noelia Carrasco Vilar
 Date: 2025-12-08
 Description:
     Phase 0: Understand the current local environment.
-    Clean, robust, cross-platform implementation + mejoras.
 """
 
 import socket
-import psutil
 import platform
 import subprocess
 import re
 from typing import List, Dict, Optional
 
+def normalize_laddr(ip, port):
+    if ip in ("0.0.0.0", "::"):
+        return {
+            "bind": "all_interfaces",
+            "port": port
+        }
+    return {
+        "ip": ip,
+        "port": port
+    }
 
-# ============================================================================
-# MEJORA 2: Detectar interfaz primaria usando default route
-# ============================================================================
 def get_primary_interface() -> Optional[str]:
     try:
         system = platform.system()
@@ -56,10 +61,15 @@ def get_primary_interface() -> Optional[str]:
 
     return None
 
+def get_arp_cache():
+    try:
+        cmd = "arp -a" if platform.system() == "Windows" else "arp -n"
+        return subprocess.check_output(
+            cmd, shell=True, text=True, errors="ignore"
+        ).strip()
+    except:
+        return ""
 
-# ============================================================================
-# MEJORA 1: ARP Parsing cross-platform
-# ============================================================================
 def parse_arp_cache() -> List[Dict]:
     system = platform.system()
     entries = []
@@ -112,22 +122,24 @@ def parse_arp_cache() -> List[Dict]:
     return entries
 
 
-# ============================================================================
-# MEJORA 3: Información detallada de interfaces
-# ============================================================================
 def classify_interface(name: str) -> str:
     name_l = name.lower()
 
+    if name_l == "lo" or "loopback" in name_l:
+        return "Loopback"
     if "virtual" in name_l or "vbox" in name_l or name_l.startswith("veth"):
         return "Virtual"
     if "wifi" in name_l or "wlan" in name_l:
         return "Wireless"
     if "bridge" in name_l or "br-" in name_l:
         return "Bridge"
+
     return "Physical"
 
 
 def get_all_interfaces() -> List[Dict]:
+    import psutil
+
     interfaces = []
 
     for name, info in psutil.net_if_addrs().items():
@@ -149,9 +161,7 @@ def get_all_interfaces() -> List[Dict]:
     return interfaces
 
 
-# ============================================================================
-# BASIC SYSTEM INFO
-# ============================================================================
+# ----- BASIC SYSTEM INFO -----
 def get_hostname():
     return socket.gethostname()
 
@@ -164,11 +174,10 @@ def get_domain():
     return fqdn.replace(host, "").strip(".")
 
 
-# ============================================================================
-# NETWORK INFO (IP + Mask + Gateway + DNS)
-# ============================================================================
+# ----- NETWORK INFO -----
 def _get_primary_ipv4():
-    """First non-loopback IPv4."""
+    import psutil
+
     for interfaces in psutil.net_if_addrs().values():
         for addr in interfaces:
             if addr.family == socket.AF_INET and not addr.address.startswith("127."):
@@ -233,8 +242,17 @@ def _get_dns():
             with open("/etc/resolv.conf") as f:
                 for line in f:
                     if line.startswith("nameserver"):
-                        dns.append(line.split()[1])
-
+                        ip = line.split()[1]
+                        if ip == "127.0.0.53":
+                            dns.append({
+                                "ip": ip,
+                                "type": "local_stub"
+                            })
+                        else:
+                            dns.append({
+                                "ip": ip,
+                                "type": "external"
+                            })
     except:
         pass
 
@@ -252,29 +270,57 @@ def get_network_info():
     }
 
 
-# ============================================================================
-# ACTIVE CONNECTIONS
-# ============================================================================
-def get_active_connections(max_results=10):
-    results = []
+# ----- ACTIVE CONNECTIONS -----
+def get_active_connections(max_results=50):
+    import psutil
+
+    conns = []
+
     for c in psutil.net_connections(kind="inet"):
-        l = f"{c.laddr.ip}:{c.laddr.port}" if c.laddr else ""
-        r = f"{c.raddr.ip}:{c.raddr.port}" if c.raddr else ""
-        results.append((l, r, c.status))
-        if len(results) >= max_results:
-            break
-    return results
+        if not c.laddr:
+            continue
 
+        score = 0
 
-# ============================================================================
-# MAIN PHASE 0
-# ============================================================================
+        if c.status == "ESTABLISHED":
+            score += 5
+        if c.raddr:
+            score += 3
+        if c.pid:
+            score += 2
+        if not c.laddr.ip.startswith("127."):
+            score += 1
+
+        laddr_info = normalize_laddr(c.laddr.ip, c.laddr.port)
+
+        conns.append({
+            "laddr": laddr_info,
+            "raddr": f"{c.raddr.ip}:{c.raddr.port}" if c.raddr else None,
+            "status": c.status,
+            "pid": c.pid,
+            "score": score,
+            "confidence": (
+                "high" if score >= 7 and c.pid else
+                "medium" if score >= 4 else
+                "low"
+            )
+        })
+
+    conns.sort(key=lambda x: x["score"], reverse=True)
+
+    unique = {}
+    for c in conns:
+        key = (str(c["laddr"]), c["status"])
+        unique[key] = c
+    return list(unique.values())[:max_results]
+
 def run_phase0():
     print("\n=== PHASE 0: SELF DISCOVERY ===\n")
 
     data = {
         "hostname": get_hostname(),
         "domain": get_domain(),
+        "role": "self",
         "network": get_network_info(),
         "interfaces": get_all_interfaces(),
         "active_connections": get_active_connections(),
@@ -283,14 +329,3 @@ def run_phase0():
     }
 
     return data
-
-
-# raw ARP for display
-def get_arp_cache():
-    try:
-        cmd = "arp -a" if platform.system() == "Windows" else "arp -n"
-        return subprocess.check_output(
-            cmd, shell=True, text=True, errors="ignore"
-        ).strip()
-    except:
-        return ""

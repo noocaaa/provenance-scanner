@@ -6,15 +6,16 @@ Description:
     Extract Hardware related data.
 """
 
-import psutil
 import platform
 
 def extract(agent=None):
+    import psutil
+
     return {
         "cpu": {
             "physical_cores": psutil.cpu_count(logical=False),
             "logical_cores": psutil.cpu_count(logical=True),
-            "architecture": platform.processor(),
+            "cpu_architecture": platform.processor(),
         },
         "memory": {
             "total": psutil.virtual_memory().total,
@@ -28,11 +29,11 @@ def extract(agent=None):
                 "mountpoint": d.mountpoint,
                 "fstype": d.fstype,
                 "total": psutil.disk_usage(d.mountpoint).total,
+                "percent": psutil.disk_usage(d.mountpoint).percent,
                 "used": psutil.disk_usage(d.mountpoint).used,
             }
             for d in psutil.disk_partitions(all=False)
             if d.mountpoint
         ],
         "boot_time": psutil.boot_time(),
-        "virtualized": platform.system() != platform.node(),
     }

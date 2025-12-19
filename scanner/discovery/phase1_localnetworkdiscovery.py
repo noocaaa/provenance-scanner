@@ -13,30 +13,21 @@ import socket
 import netifaces
 import re
 from concurrent.futures import ThreadPoolExecutor
-from collections import defaultdict
-
-# -------------------------
-# Ports for shallow discovery
-# -------------------------
 
 DISCOVERY_PORTS = {
     "printer": [9100, 515, 631],
-    "server": [22, 80, 443, 445, 3306, 5432],
-    "switch": [23, 161]
+    "server":  [22, 80, 443, 445, 3306, 5432, 3389, 5985, 5986],
+    "switch":  [23, 161]
 }
 
-COMMON_TCP_PORTS = [22, 80, 443]   # Phase-1 minimal probes
-COMMON_UDP_PORTS = [53, 67, 161, 123]  # DO NOT parse protocols – only presence detection
+COMMON_TCP_PORTS = [22, 80, 443, 3389, 5985, 5986]
+COMMON_UDP_PORTS = [53, 67, 161, 123]
 
-# -------------------------
-# Utilities
-# -------------------------
-
+# ------- Helpers -------
 def calculate_subnet_range(ip: str, netmask: str) -> ipaddress.IPv4Network:
     return ipaddress.IPv4Network(f"{ip}/{netmask}", strict=False)
 
 def scan_open_ports(ip, ports=None, timeout=0.2):
-    """Return list of open TCP ports for a host."""
     ports = ports or DISCOVERY_PORTS["server"] + DISCOVERY_PORTS["printer"] + DISCOVERY_PORTS["switch"]
     open_p = []
     for p in ports:
@@ -46,7 +37,6 @@ def scan_open_ports(ip, ports=None, timeout=0.2):
 
 
 def is_valid_host(ip_str: str, network: ipaddress.IPv4Network) -> bool:
-    """Check that IP is real, not multicast, not broadcast, and inside subnet."""
     try:
         ip = ipaddress.IPv4Address(ip_str)
     except Exception:
@@ -59,10 +49,7 @@ def is_valid_host(ip_str: str, network: ipaddress.IPv4Network) -> bool:
 
     return ip in network
 
-# -------------------------
-# ARP SCAN
-# -------------------------
-
+# ------- ARP SCAN -------
 def arp_scan_local(network: ipaddress.IPv4Network):
     """Read ARP cache and return entries that belong to subnet."""
     try:
@@ -84,10 +71,7 @@ def arp_scan_local(network: ipaddress.IPv4Network):
             hosts.append(candidate)
     return hosts
 
-# -------------------------
-# TCP SYN Discovery
-# -------------------------
-
+# ------- TCP SYN Discovery -------
 def tcp_probe(ip: str, port: int, timeout=0.15) -> bool:
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -125,10 +109,7 @@ def tcp_discovery(network: ipaddress.IPv4Network, ports=None, workers=60, max_ho
 
     return sorted(found)
 
-# -------------------------
-# ICMP fallback
-# -------------------------
-
+# ------- ICMP fallback -------
 def icmp_ping(ip: str) -> str | None:
     system = platform.system()
     cmd = f"ping -n 1 -w 300 {ip}" if system == "Windows" else f"ping -c 1 -W 1 {ip}"
@@ -156,12 +137,8 @@ def icmp_sweep_parallel(network: ipaddress.IPv4Network, workers=80, max_hosts=10
 
     return sorted(found)
 
-# -------------------------
-# UDP Reachability (LIGHTWEIGHT)
-# -------------------------
-
+# ------- UDP Reachability (LIGHTWEIGHT) -------
 def udp_probe(ip: str, port: int, timeout=0.2) -> bool:
-    """Send empty UDP packet, treat any reply as 'alive'. No protocol parsing."""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(timeout)
@@ -174,12 +151,8 @@ def udp_probe(ip: str, port: int, timeout=0.2) -> bool:
     except Exception:
         return False
 
-# -------------------------
-# OS Fingerprinting (TTL-based)
-# -------------------------
-
+# ------- OS Fingerprinting (TTL-based) -------
 def guess_os(ip: str) -> str:
-    """Lightweight TTL-based OS guess for Phase-1."""
     try:
         system = platform.system()
         cmd = f"ping -c 1 -W 1 {ip}" if system != "Windows" else f"ping -n 1 -w 300 {ip}"
@@ -191,19 +164,15 @@ def guess_os(ip: str) -> str:
 
         ttl = int(m.group(1))
         if ttl <= 70:
-            return "linux"
+            return "linux_like"
         if ttl <= 130:
-            return "windows"
+            return "windows_like"
         if ttl > 200:
-            return "network_device"
+            return "network_device_like"
     except:
         pass
 
     return "unknown"
-
-# -------------------------
-# Classification (shallow)
-# -------------------------
 
 def classify_host(ip, tcp_ports, udp_ports, os_guess):
     default_gw = netifaces.gateways().get('default', {}).get(netifaces.AF_INET, [None])[0]
@@ -211,23 +180,22 @@ def classify_host(ip, tcp_ports, udp_ports, os_guess):
     if ip == default_gw:
         return "gateway"
 
+    if os_guess == "network_device_like":
+        return "network_device"
+
     if 9100 in tcp_ports or 631 in tcp_ports:
         return "printer"
 
     if 80 in tcp_ports or 443 in tcp_ports:
-        return "web_server"
+        return "web_service"
 
     if 22 in tcp_ports:
-        return "ssh_host"
+        return "ssh_service"
 
     if 53 in udp_ports:
         return "dns_like"
 
-    return f"unknown_{os_guess}"
-
-# -------------------------
-# MAIN
-# -------------------------
+    return "unknown"
 
 def run_phase1(
     ip: str,
@@ -270,22 +238,29 @@ def run_phase1(
         print(f"    ICMP responders: {icmp_hosts}")
         discovered.update(icmp_hosts)
 
-    # Validate final list
     validated = sorted([h for h in discovered if is_valid_host(h, network)])
 
-    # Classification stage
+    # Classification
     discovered_devices = {}
     print("\n[+] Classifying discovered hosts...")
 
     for host in validated:
         tcp_open = scan_open_ports(host := host)
-        udp_open = [p for p in COMMON_UDP_PORTS if udp_probe(host, p)]
         os_guess = guess_os(host)
+
+        udp_open = []
+        for p in COMMON_UDP_PORTS:
+            if udp_probe(host, p):
+                udp_open.append({
+                    "port": p,
+                    "evidence": "packet_response",
+                    "confidence": "very_low"
+                })
 
         discovered_devices[host] = {
             "tcp": tcp_open,
             "udp": udp_open,
-            "os": os_guess,
+            "os_hint": os_guess,
             "type": classify_host(host, tcp_open, udp_open, os_guess)
         }
 
@@ -296,5 +271,7 @@ def run_phase1(
         "network": str(network),
         "discovered_hosts": validated,
         "details": discovered_devices,
-        "methods": methods
+        "methods": methods,
+        "scanner_ip": ip,
+        "scanner_role": "active_discovery_node",
     }

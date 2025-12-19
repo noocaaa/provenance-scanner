@@ -6,92 +6,129 @@ Description:
     Styling query for the node4j graph.
 */
 
-// Global topology (default view)
-MATCH (n:Network)<-[r1:IN_NETWORK]-(ip:IP)<-[r2:HAS_IP]-(h:Host)
-RETURN n, ip, h, r1, r2
+// ------ SNAPSHOT / TOPOLOGY ------
 
-// Full Graph
-MATCH (n)-[r]->(m) RETURN n, r,m
+// Snapshot → Hosts
+MATCH (s:Snapshot)-[R:OBSERVED]->(h:Host)
+RETURN s, R, h;
 
-// Discovery relationship
-MATCH (h:Host)-[r1:PERFORMED]->(d:Discovery)-[r2:DISCOVERED]->(r:Host)
-RETURN h, d, r, r1, r2
+// Global network topology
+MATCH (n:Network)<-[A:IN_NETWORK]-(ip:IP)<-[B:HAS_IP]-(h:Host)
+RETURN n, ip, A, B, h;
 
-// All information for a specific host (2-hop view)
-MATCH (h:Host {ip: "192.168.56.1"})-[*1..2]->(x)
-RETURN h, x
+// ------ HOST VIEWS ------
 
-// Host - Interface - IP
-MATCH (h:Host)-[r1:HAS_INTERFACE]->(i:Interface)-[r2:HAS_IP]->(ip:IP)
-RETURN h, i, ip, r1, r2
+// Host list
+MATCH (h:Host)
+RETURN h.ip, h.hostname, h.role;
 
-// OS
-MATCH (h:Host)-[r:RUNS_OS]->(os:OS)
-RETURN h, os, r
+// Specific host
+MATCH (h:Host {ip:"10.0.2.15"})-->(n)
+RETURN h, n;
 
-// Logged users
-MATCH (h:Host)-[r:LOGGED_IN_AS]->(u:User)
-RETURN h, u, r
-
-// Installed software
-MATCH (h:Host)-[r:INSTALLED]->(s:Software)
-RETURN h, s, r
-
-// Hardware
-MATCH (h:Host)-[r:HAS_HARDWARE]->(hw)
-RETURN h, r, hw
-
-// CPU
-MATCH (h:Host)-[r:HAS_HARDWARE]->(c:CPU)
-RETURN h, r, c
-
-// Memory
-MATCH (h:Host)-[r:HAS_HARDWARE]->(m:Memory)
-RETURN h,r,  m
-
-// Disk
-MATCH (h:Host)-[r:HAS_HARDWARE]->(d:Disk)
-RETURN h, r, d
-
-// Host - Process
-MATCH (h:Host)-[r:RUNS]->(p:Process)
-RETURN h, p, r
-
-// Process - Port (LISTENS_ON)
-MATCH (h:Host)-[r1:RUNS]->(p:Process)-[r2:LISTENS_ON]->(port:Port)
-RETURN h, p, port, r1, r2
+// ------ PORTS & EXPOSURE ------
 
 // Ports exposed by host
-MATCH (h:Host)-[r:EXPOSES]->(p:Port)
-RETURN h, p, r
+MATCH (h:Host)-[R:EXPOSES]->(p:Port)
+RETURN h, R, p;
 
-///////////////////////
-//  ADVANCED QUERIES //
-///////////////////////
-
-// Open Ports per host
+// Publicly exposed ports
 MATCH (h:Host)-[:EXPOSES]->(p:Port)
-RETURN h.ip AS host, collect(p.port) AS open_ports
-
-// Host with open SSH
-MATCH (h:Host)-[:EXPOSES]->(p:Port {port: 22})
-RETURN h
-
-// Host with >3 open ports
-MATCH (h:Host)-[:EXPOSES]->(p:Port)
-WITH h, count(p) AS ports
-WHERE ports > 3
-RETURN h, ports
-
-// Software per Host
-MATCH (h:Host)-[:INSTALLED]->(s:Software)
-RETURN h.ip AS host, collect(s.name) AS software
-
-// Full attack surface per host (process + port)
-MATCH (h:Host)-[:RUNS]->(p:Process)-[:LISTENS_ON]->(port:Port)
-RETURN h.ip, p.pid, p.name, port.port
+WHERE p.exposure = "public"
+RETURN h.ip, p.port, p.bind_ip;
 
 // High-risk ports
-MATCH (h:Host)-[r:EXPOSES]->(p:Port)
+MATCH (h:Host)-[R:EXPOSES]->(p:Port)
 WHERE p.port IN [22, 3389, 445, 3306, 5432]
-RETURN h, r, p
+RETURN h, R, p;
+
+// ------ PROCESS / SOCKET / CONNECTIONS ------
+
+// Host → Process
+MATCH (h:Host)-[R:RUNS]->(p:Process)
+RETURN h, R,  p;
+
+// Process → Socket → Port
+MATCH (p:Process)-[A:USES_SOCKET]->(s:Socket)-[B:BINDS_TO]->(port:Port)
+RETURN p, s, A, B, port;
+
+// Outgoing connections
+MATCH (s:Socket)-[R:CONNECTS_TO]->(ip:IP)
+RETURN s, R, ip;
+
+// ------ OS (UPDATED) ------
+
+// OS per host
+MATCH (h:Host)-[A:RUNS_OS]->(osi:OSInstance)-[B:INSTANCE_OF]->(osf:OSFamily)
+RETURN h, osi, A, B, osf;
+
+// ------ SOFTWARE (UPDATED) ------
+
+// Installed software per host
+MATCH (h:Host)-[:HAS_INSTALLED]->(si:SoftwareInstance)-[:INSTANCE_OF]->(sf:SoftwareFamily)
+RETURN h.ip AS host, sf.name AS software, si.version;
+
+// Software families across hosts
+MATCH (sf:SoftwareFamily)<-[:INSTANCE_OF]-(si:SoftwareInstance)<-[:HAS_INSTALLED]-(h:Host)
+RETURN sf.name, collect(h.ip) AS hosts;
+
+// ------ EXECUTION CHAIN ------
+
+// Executable → Software family → Process
+MATCH (p:Process)-[A:EXECUTES]->(e:Executable)-[B:PART_OF]->(sf:SoftwareFamily)
+RETURN p, e, A, B, sf;
+
+// Software exposed publicly
+MATCH (sf:SoftwareFamily)<-[:PART_OF]-(e:Executable)<-[:EXECUTES]-(p:Process)
+MATCH (p)-[:USES_SOCKET]->(:Socket)-[:BINDS_TO]->(port:Port)
+WHERE port.exposure = "public"
+RETURN sf.name, p.name, port.port;
+
+// Software families that have processes on host that expose public ports
+MATCH (sf:SoftwareFamily)<-[:PART_OF]-(e:Executable)<-[:EXECUTES]-(p:Process)
+MATCH (p)-[:USES_SOCKET]->(:Socket)
+MATCH (h:Host)-[:EXPOSES]->(port:Port)
+WHERE port.exposure = "public"
+RETURN DISTINCT sf.name, p.name, port.port;
+
+// ------ USERS ------
+
+// Users and their processes
+MATCH (u:User)-[:RUNS_PROCESS]->(p:Process)
+RETURN u.name, p.name, p.pid;
+
+// Logged-in sessions
+MATCH (h:Host)-[:HAS_SESSION]->(s:Session)-[:SESSION_USER]->(u:User)
+RETURN h.ip, u.name, s.started;
+
+// ------ METRICS ------
+
+// Metrics per snapshot
+MATCH (s:Snapshot)-[:HAS_METRICS]->(m:Metrics)
+RETURN m;
+
+// Attack surface summary
+MATCH (m:Metrics)
+RETURN
+  m.public_ports,
+  m.local_ports,
+  m.internal_ports,
+  m.public_exposure_ratio;
+
+// Graph complexity
+MATCH (m:Metrics)
+RETURN
+  m.total_nodes,
+  m.total_edges,
+  m.edge_types;
+
+// ------ PROCESS TRESS ------
+
+// Full process tree
+MATCH path = (root:Process {pid: 1})<-[:SPAWNED_BY*]-(child)
+RETURN path;
+
+// Suspicious shell chains
+MATCH (a:Process)-[:SPAWNED_BY]->(b:Process)-[:SPAWNED_BY]->(c:Process)
+WHERE b.name IN ["bash", "sh", "zsh"]
+RETURN a.name, b.name, c.name;

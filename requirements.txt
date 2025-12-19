@@ -7,4 +7,5 @@ neo4j
 python-dotenv
 pyinstaller
 pyyaml
+pywinrm
 # Note: Vagrant must be installed separately from https://www.vagrantup.com/

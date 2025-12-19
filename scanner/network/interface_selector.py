@@ -15,7 +15,6 @@ Description:
     - Score interfaces and return sorted list
 """
 
-import psutil
 import socket
 import ipaddress
 import netifaces
@@ -264,7 +263,8 @@ def score_interface(name: str, ip: str, netmask: str, mac: str):
 # MAIN EXPORT
 # ===================================================================
 def select_best_interfaces():
-    """Return list of valid interfaces sorted by score."""
+    import psutil
+
     results = []
 
     for name, addrs in psutil.net_if_addrs().items():

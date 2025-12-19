@@ -16,7 +16,7 @@ def extract(agent=None):
         "os": platform.system(),
         "os_release": platform.release(),
         "os_version": platform.version(),
-        "architecture": platform.machine(),
+        "os_architecture": platform.machine(),
         "python_version": platform.python_version(),
     }
 

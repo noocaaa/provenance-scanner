@@ -72,7 +72,7 @@ Applications and Services,Security Enhancements,Third-party services,"Third-part
 Databases,DB Identity,Type,"Type (MySQL, PostgreSQL, MongoDB, etc.)",Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
 Databases,DB Identity,Version,Version,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
 Databases,DB Identity,Host and port,Host and port,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
-Databases,Configuration,Users and roles,Users and roles,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
+Databases,Configuration,Users and roles,Users and roles,Static,Critical,Completed,2026-01-02 09:09:14.880221,,Critical,Not Validated
 Databases,Configuration,Permissions per database,Permissions per database,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated
 Databases,Configuration,Password policies,Password policies,Static,High,Pending,2026-01-02 09:09:14.880221,,High,Not Validated
 Databases,Configuration,Encryption in transit and at rest,Encryption in transit and at rest,Static,Critical,Pending,2026-01-02 09:09:14.880221,,Critical,Not Validated

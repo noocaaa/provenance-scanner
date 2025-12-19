@@ -14,7 +14,7 @@ from scanner.agents.extractors import (
     network_extractor,
     users_extractor,
     packages_extractor,
-    services_extractor,
+    services_extractor, software_extractor,
 )
 
 EXTRACTOR_ORDER = [
@@ -24,6 +24,7 @@ EXTRACTOR_ORDER = [
     ("users", users_extractor),
     ("packages", packages_extractor),
     ("services", services_extractor),
+    ("software", software_extractor),
 ]
 
 

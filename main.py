@@ -14,6 +14,7 @@ from scanner.provenance.graph_builder import GraphBuilder
 from scanner.provenance.neo4j_push import Neo4jConnector
 from scanner.agents.correlation.topology_builder import TopologyBuilder
 from scanner.agents.remote_runner.runner import run_all
+from scanner.agents.winrm_agent import WinRMAgent
 
 from dotenv import load_dotenv
 from utils import save_results
@@ -48,7 +49,7 @@ def select_phase2_targets(phase1: dict, local_ips: set[str], local_hostname: str
             if type_guess in ("gateway", "network_device"):
                 continue
 
-            if 22 in tcp:
+            if 22 in tcp or 5985 in tcp or 5986 in tcp:
                 valid_hosts.add(ip)
 
     return sorted(valid_hosts)
@@ -101,7 +102,6 @@ if __name__ == "__main__":
             fallback_icmp=False
         )
 
-        # Add interface to list of scanned interfaces
         all_phase1["interfaces_scanned"].append({
             "interface": name,
             "ip": ip,
@@ -110,10 +110,8 @@ if __name__ == "__main__":
             "reason": iface["reason"]
         })
 
-        # Save per-interface results (in memory)
         all_phase1["results"][name] = phase1_result
 
-        # Aggregate global data
         for h in phase1_result["discovered_hosts"]:
             unique_hosts.add(h)
 
@@ -126,10 +124,8 @@ if __name__ == "__main__":
         "networks_discovered": sorted(networks_discovered)
     }
 
-    # Add to global results
     all_results["phase1"] = all_phase1
 
-    # Save Phase 1 as ONE file
     save_results(all_phase1, label="phase1")
 
     # -----------------------
@@ -167,11 +163,26 @@ if __name__ == "__main__":
         if ip in local_ips:
             continue
 
-        agent = SSHAgent(
-            host=ip,
-            user="vagrant",
-            key_path="~/.ssh/cluster_key"
-        )
+        details = None
+        for iface, res in all_results["phase1"]["results"].items():
+            details = res.get("details", {}).get(ip)
+            if details:
+                break
+
+        tcp = details.get("tcp", []) if details else []
+
+        if 5985 in tcp or 5986 in tcp:
+            agent = WinRMAgent(
+                host=ip,
+                user="vagrant",
+                password="vagrant"
+            )
+        else:
+            agent = SSHAgent(
+                host=ip,
+                user="vagrant",
+                key_path="~/.ssh/cluster_key"
+            )
 
         agent.deploy()
         agent.execute()
@@ -193,7 +204,6 @@ if __name__ == "__main__":
     topology_builder = TopologyBuilder(all_results)
     system_model = topology_builder.build()
 
-    # Reuse your existing utility (perfect fit)
     save_results(system_model, label="system_construction")
 
     # -----------------------

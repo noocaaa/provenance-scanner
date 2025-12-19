@@ -22,16 +22,22 @@ class SSHAgent:
         self.timeout = timeout
         self.remote_bin: Optional[str] = None
 
-    # -------------------- helpers --------------------
-    def _ssh(self, cmd: str) -> subprocess.CompletedProcess:
+    def _ssh(self, cmd: str, timeout: Optional[int] = None) -> subprocess.CompletedProcess:
         ssh_cmd = [
             "ssh",
             "-i", self.key_path,
             "-o", "StrictHostKeyChecking=no",
+            "-o", "BatchMode=yes",
             f"{self.user}@{self.host}",
             cmd,
         ]
-        return subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=self.timeout)
+
+        return subprocess.run(
+            ssh_cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout or self.timeout,
+        )
 
     def _scp_to_remote(self, src: str, dst: str) -> subprocess.CompletedProcess:
         scp_cmd = [
@@ -53,10 +59,8 @@ class SSHAgent:
         ]
         return subprocess.run(scp_cmd, capture_output=True, text=True, timeout=self.timeout)
 
-    # -------------------- logic --------------------
     def detect_remote_os(self) -> str:
-        # linux/macos: uname
-        r = self._ssh("uname -s")
+        r = self._ssh("uname -s", timeout=10)
         if r.returncode == 0:
             s = (r.stdout or "").strip().lower()
             if "linux" in s:
@@ -64,48 +68,54 @@ class SSHAgent:
             if "darwin" in s:
                 return "macos"
 
-        # windows fallback: ver (cmd)
-        r2 = self._ssh("cmd /c ver")
-        if r2.returncode == 0:
+        r = self._ssh("cmd /c echo WINDOWS", timeout=10)
+        if r.returncode == 0 and "WINDOWS" in (r.stdout or ""):
             return "windows"
 
-        return "linux"  # safe default
+        raise RuntimeError(
+            f"[{self.host}] Unable to detect remote OS.\n"
+            f"stdout={r.stdout}\nstderr={r.stderr}"
+        )
 
     def deploy(self):
         os_name = self.detect_remote_os()
 
         if os_name == "windows":
             local_bin = "build/windows/provenance_agent.exe"
-            remote_bin = f"{self.remote_dir}/agent.exe"
+            remote_dir = "C:/tmp/provenance_agent"
+            remote_bin = f"{remote_dir}/agent.exe"
+            mkdir_cmd = f'mkdir "{remote_dir}"'
         else:
-            # linux / macos
             local_bin = f"build/{os_name}/provenance_agent"
-            remote_bin = f"{self.remote_dir}/agent"
+            remote_dir = self.remote_dir
+            remote_bin = f"{remote_dir}/agent"
+            mkdir_cmd = f"mkdir -p {remote_dir}"
 
-        # create remote dir
-        r = self._ssh(f"mkdir -p {self.remote_dir}")
+        r = self._ssh(mkdir_cmd)
         if r.returncode != 0:
             raise RuntimeError(f"[{self.host}] mkdir failed: {r.stderr}")
 
-        # copy binary
         r = self._scp_to_remote(local_bin, remote_bin)
         if r.returncode != 0:
             raise RuntimeError(f"[{self.host}] scp deploy failed: {r.stderr}")
 
-        # chmod only for non-windows
         if os_name != "windows":
             r = self._ssh(f"chmod +x {remote_bin}")
             if r.returncode != 0:
                 raise RuntimeError(f"[{self.host}] chmod failed: {r.stderr}")
 
         self.remote_bin = remote_bin
+        self.remote_dir = remote_dir
 
     def execute(self):
         if not self.remote_bin:
             raise RuntimeError("deploy() must run before execute()")
 
-        # run inside remote_dir so output.json lands there
-        cmd = f"cd {self.remote_dir} && {self.remote_bin}"
+        if self.remote_bin.lower().endswith(".exe"):
+            cmd = f'"{self.remote_bin}"'
+        else:
+            cmd = f"cd {self.remote_dir} && {self.remote_bin}"
+
         r = self._ssh(cmd)
         if r.returncode != 0:
             raise RuntimeError(f"[{self.host}] agent failed:\n{r.stderr}\n{r.stdout}")
@@ -126,9 +136,8 @@ class SSHAgent:
         if r.returncode != 0:
             raise RuntimeError(f"[{self.host}] scp output.json failed: {r.stderr}")
 
-        # yml optional (si quieres que sea obligatorio, quita el if)
         r2 = self._scp_from_remote(remote_yml, local_yml)
-        # no explotes si no existe el yml
+
         if r2.returncode != 0:
             pass
 

@@ -15,5 +15,15 @@ New-NetFirewallRule `
   -Action Allow `
   -LocalPort 22
 
-# Optional: install Python
-winget install --id Python.Python.3.11 -e --silent
+Write-Host "Installing Chocolatey..."
+Set-ExecutionPolicy Bypass -Scope Process -Force
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+Write-Host "Installing Python 3.11..."
+choco install python --version=3.11.0 -y
+
+# Refresh PATH for current session
+$env:Path += ";C:\Python311;C:\Python311\Scripts"
+
+python --version

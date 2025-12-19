@@ -2,40 +2,38 @@ $ErrorActionPreference = "Stop"
 
 $AGENT_NAME = "provenance_agent"
 $ROOT = Get-Location
-$AGENT_DIR = "$ROOT\scanner\agents\remote_runner"
 $OUT_DIR = "$ROOT\build\windows"
+$VENV = "$ROOT\.venv_build"
 
-# ---------- Cleanup Environment ----------
-$env:HTTP_PROXY=""
-$env:HTTPS_PROXY=""
-$env:http_proxy=""
-$env:https_proxy=""
+Write-Host "[*] Building Windows agent"
+Write-Host "    Root: $ROOT"
 
-# ---------- Build env ----------
-python -m venv .venv_build
-. .venv_build\Scripts\Activate.ps1
+Remove-Item Env:HTTP_PROXY -ErrorAction SilentlyContinue
+Remove-Item Env:HTTPS_PROXY -ErrorAction SilentlyContinue
+Remove-Item Env:http_proxy -ErrorAction SilentlyContinue
+Remove-Item Env:https_proxy -ErrorAction SilentlyContinue
 
-python -m pip install `
-    -i https://mirrors.aliyun.com/pypi/simple/ `
-    --trusted-host mirrors.aliyun.com `
-    pyinstaller pyyaml
+if (Test-Path $VENV) {
+    Remove-Item -Recurse -Force $VENV
+}
+python -m venv $VENV
+. "$VENV\Scripts\Activate.ps1"
 
-# ---------- Build ----------
-Set-Location $AGENT_DIR
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install pyinstaller pyyaml psutil
 
 python -m PyInstaller `
   --onefile `
   --clean `
   --name $AGENT_NAME `
-  --distpath "$OUT_DIR" `
-  --workpath "$ROOT\.tmp_build" `
-  --specpath "$ROOT\.tmp_build" `
-  run.py
+  --collect-submodules scanner `
+  --collect-all psutil `
+  scanner/agents/remote_runner/run.py
 
-# ---------- Cleanup ----------
+New-Item -ItemType Directory -Force -Path $OUT_DIR | Out-Null
+Move-Item "dist\$AGENT_NAME.exe" "$OUT_DIR\" -Force
+
+Remove-Item -Recurse -Force dist, *.spec -ErrorAction SilentlyContinue
 deactivate
-Set-Location $ROOT
 
-Remove-Item -Recurse -Force .tmp_build
-
-Write-Host "Built: build/windows/$AGENT_NAME.exe"
+Write-Host "[X] Built: build/windows/$AGENT_NAME.exe"

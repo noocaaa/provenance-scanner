@@ -82,19 +82,22 @@ Vagrant.configure("2") do |config|
   # WINDOWS CLIENT (SSH ENABLED)
   # =========================
   config.vm.define "win" do |win|
-    win.vm.box = "gusztavvargadr/windows-10"
+    win.vm.box = "jborean93/WindowsServer2022"
     win.vm.hostname = "win-client"
     win.vm.network "private_network", ip: "#{NETWORK_PREFIX}.50"
 
+    win.vm.communicator = "winrm"
+    win.vm.boot_timeout = 1200
+
     win.vm.provider "virtualbox" do |vb|
-      vb.memory = 4096
-      vb.cpus = 2
+        vb.memory = 4096
+        vb.cpus = 2
+        vb.gui = true
+        vb.customize ["modifyvm", :id, "--graphicscontroller", "vboxsvga"]
+        vb.customize ["modifyvm", :id, "--vram", "128"]
     end
 
-    # IMPORTANT: Windows needs WinRM for provisioning
-    win.vm.communicator = "winrm"
-
-    win.vm.provision "shell", path: "scripts/install_cluster_key.sh"
-    win.vm.provision "shell", privileged: true, path: "scripts/install_scanner_win.ps1"
-  end
+        win.vm.provision "shell", privileged: true, path: "scripts/install_cluster_key_windows.ps1"
+        win.vm.provision "shell", privileged: true, path: "scripts/install_scanner_windows.ps1"
+    end
 end

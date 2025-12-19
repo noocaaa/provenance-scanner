@@ -8,6 +8,18 @@ Description:
 
 import platform
 import subprocess
+import re
+
+def windows_ip_forwarding():
+    out = _cmd(["powershell", "-Command", "Get-NetIPInterface | Select InterfaceAlias, Forwarding"])
+    if not out:
+        return None
+
+    for line in out.splitlines():
+        if "Enabled" in line:
+            return True
+
+    return False
 
 def _cmd(cmd):
     try:
@@ -17,6 +29,31 @@ def _cmd(cmd):
     except Exception:
         return None
 
+def windows_nat_status():
+    # Check WinNAT
+    nat = _cmd(["powershell", "-Command", "Get-NetNat"])
+    if nat:
+        return {
+            "enabled": True,
+            "rules": nat.splitlines()
+        }
+
+    # Check Internet Connection Sharing
+    ics = _cmd([
+        "powershell",
+        "-Command",
+        "Get-Service SharedAccess -ErrorAction SilentlyContinue"
+    ])
+    if ics and "Running" in ics:
+        return {
+            "enabled": True,
+            "rules": ["Internet Connection Sharing enabled"]
+        }
+
+    return {
+        "enabled": False,
+        "rules": []
+    }
 
 def extract(agent=None):
     data = {
@@ -51,18 +88,23 @@ def extract(agent=None):
         # NAT rules (best effort)
         nat = _cmd(["iptables", "-t", "nat", "-L", "-n"])
         if nat:
-            data["nat"]["enabled"] = True
+            data["nat"]["enabled"] = "unknown"
             data["nat"]["rules"] = nat.splitlines()
 
     # ----------------------------
     # Windows
     # ----------------------------
     elif system == "Windows":
+        data["ip_forwarding"] = windows_ip_forwarding()
+
         routes = _cmd(["route", "print"])
         if routes:
-            data["routing_table"] = routes.splitlines()
+            lines = routes.splitlines()
+            data["routing_table"] = lines
             data["default_routes"] = [
-                l for l in routes.splitlines() if "0.0.0.0" in l
+                l for l in lines if re.search(r"^\s*0\.0\.0\.0\s+0\.0\.0\.0", l)
             ]
+
+        data["nat"] = windows_nat_status()
 
     return data
